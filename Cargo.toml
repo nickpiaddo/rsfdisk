@@ -1,8 +1,8 @@
 [package]
 name = "rsfdisk"
 description = "Safe Rust wrapper around the `util-linux/libfdisk` C library"
-version = "0.2.0"
-authors = ["Nick Piaddo <nick.piaddo@protonmail.com>"]
+version = "0.2.1"
+authors = ["Nick Piaddo <nick.piaddo@protonmail.com>", "Aaron Honeycutt <aaronhoneycutt@protonmail.com>"]
 license = "Apache-2.0 OR MIT"
 rust-version = "1.82"
 edition = "2021"
