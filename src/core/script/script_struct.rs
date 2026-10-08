@@ -138,7 +138,7 @@ impl<'fdisk> Script<'fdisk> {
     /// otherwise it should emit an I/O Error.
     pub fn set_custom_read_line<R>(&mut self, fn_read_line: R) -> Result<(), ScriptError>
     where
-        R: FnMut(&mut File, &mut [i8]) -> io::Result<usize> + 'static,
+        R: FnMut(&mut File, &mut [libc::c_char]) -> io::Result<usize> + 'static,
     {
         #[doc(hidden)]
         /// Callback function used by the `libfdisk::fdisk_script_read_file` and
@@ -150,7 +150,7 @@ impl<'fdisk> Script<'fdisk> {
             file_stream: *mut libfdisk::FILE,
         ) -> *mut libc::c_char
         where
-            R: FnMut(&mut File, &mut [i8]) -> io::Result<usize> + 'static,
+            R: FnMut(&mut File, &mut [libc::c_char]) -> io::Result<usize> + 'static,
         {
             // Build a temporary Rust `File` object from a C FILE struct.
             let rc = unsafe { libc::fileno(file_stream as *mut _) };
