@@ -7,7 +7,7 @@
 use std::ffi::CString;
 use std::fs::File;
 use std::mem::MaybeUninit;
-use std::os::fd::{BorrowedFd, IntoRawFd};
+use std::os::fd::{AsRawFd, BorrowedFd};
 use std::path::Path;
 use std::slice;
 
@@ -213,7 +213,7 @@ impl<'a> Fdisk<'a> {
     /// Assigns a device by file to a `Fdisk` instance.
     fn assign_device_by_file<T>(
         fdisk: &mut Self,
-        file: File,
+        file: &File,
         device_path: T,
         read_only: i32,
     ) -> Result<(), FdiskError>
@@ -253,7 +253,7 @@ impl<'a> Fdisk<'a> {
             let result = unsafe {
                 libfdisk::fdisk_assign_device_by_fd(
                     fdisk.inner,
-                    file.into_raw_fd(),
+                    file.as_raw_fd(),
                     dev_path.as_ptr(),
                     read_only,
                 )
@@ -311,7 +311,7 @@ impl<'a> Fdisk<'a> {
     /// Assigns a device by file in **read-only** mode to a `Fdisk`.
     pub(crate) fn assign_device_by_file_read_only<T>(
         &mut self,
-        device_file: File,
+        device_file: &File,
         device_path: T,
     ) -> Result<(), FdiskError>
     where
@@ -329,7 +329,7 @@ impl<'a> Fdisk<'a> {
     /// Assigns a device by file in **read-write** mode to a `Fdisk`.
     pub(crate) fn assign_device_by_file_read_write<T>(
         &mut self,
-        device_file: File,
+        device_file: &File,
         device_path: T,
     ) -> Result<(), FdiskError>
     where
@@ -752,7 +752,7 @@ impl<'a> Fdisk<'a> {
     ///
     /// Call the `FdiskBuilder`'s [`build()`](crate::fdisk::FdiskBuilder::build) method to
     /// instantiate a new `Fdisk`.
-    pub fn builder() -> FdiskBuilder {
+    pub fn builder() -> FdiskBuilder<'a> {
         log::debug!("Fdisk::builder creating a new `FdiskBuilder` instance");
 
         CtxBuilder::builder()
@@ -3407,7 +3407,7 @@ mod tests {
         let regular_file = NamedTempFile::new().unwrap();
         let (file, temp_path) = regular_file.into_parts();
         let _ = Fdisk::builder()
-            .assign_device_by_file(file, temp_path.as_os_str())
+            .assign_device_by_file(&file, temp_path.as_os_str())
             .build()
             .unwrap();
     }
@@ -3683,7 +3683,7 @@ mod tests {
         let (file, temp_path) = tmp_image.into_parts();
 
         let disk = Fdisk::builder()
-            .assign_device_by_file(file, temp_path.as_os_str())
+            .assign_device_by_file(&file, temp_path.as_os_str())
             .build()?;
 
         let actual = disk.device_is_image_file();
