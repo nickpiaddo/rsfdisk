@@ -21,7 +21,7 @@ use crate::fdisk::SizeFormat;
         vis = "pub",
         doc ="Configure and instantiate a [`Fdisk`].\n\nFor usage, see [`FdiskBuilder::build`]."),
     build_method(vis = "", name = __make))]
-pub(crate) struct CtxBuilder {
+pub(crate) struct CtxBuilder<'a> {
     #[builder(
         default,
         setter(
@@ -51,12 +51,12 @@ name of the already existing file system or partition table."))]
     #[builder(
         default,
         setter(
-        transform = |device_file: File, device_path: impl AsRef<Path>| Some((device_file,
+        transform = |device_file: &'a File, device_path: impl AsRef<Path>| Some((device_file,
                 device_path.as_ref().to_path_buf())),
         doc = "This method acts like [`FdiskBuilder::assign_device`], but the caller assumes
 responsibility for manually opening/closing the assigned device.  The device **MUST** be
 opened in read/write mode if you set [`FdiskBuilder::enable_read_write`] to `true`."))]
-    assign_device_by_file: Option<(File, PathBuf)>,
+    assign_device_by_file: Option<(&'a File, PathBuf)>,
 
     #[builder(
         default,
@@ -152,7 +152,7 @@ assigned device before writing a new partition table."
 impl<
         'a,
         __assign_device: ::typed_builder::Optional<Option<PathBuf>>,
-        __assign_device_by_file: ::typed_builder::Optional<Option<(File, PathBuf)>>,
+        __assign_device_by_file: ::typed_builder::Optional<Option<(&'a File, PathBuf)>>,
         __device_geometry: ::typed_builder::Optional<Option<(u32, u32, u32)>>,
         __device_grain_size: ::typed_builder::Optional<Option<u64>>,
         __device_sector_sizes: ::typed_builder::Optional<Option<(u32, u32)>>,
@@ -165,21 +165,24 @@ impl<
         __enable_read_write: ::typed_builder::Optional<bool>,
         __wipe_device_metadata: ::typed_builder::Optional<bool>,
     >
-    FdiskBuilder<(
-        __assign_device,
-        __assign_device_by_file,
-        __device_geometry,
-        __device_grain_size,
-        __device_sector_sizes,
-        __device_addressing,
-        __enable_interactive,
-        __display_partition_list_only,
-        __display_partition_details,
-        __erase_master_boot_record,
-        __partition_size_format,
-        __enable_read_write,
-        __wipe_device_metadata,
-    )>
+    FdiskBuilder<
+        'a,
+        (
+            __assign_device,
+            __assign_device_by_file,
+            __device_geometry,
+            __device_grain_size,
+            __device_sector_sizes,
+            __device_addressing,
+            __enable_interactive,
+            __display_partition_list_only,
+            __display_partition_details,
+            __erase_master_boot_record,
+            __partition_size_format,
+            __enable_read_write,
+            __wipe_device_metadata,
+        ),
+    >
 {
     /// Completes a [`Fdisk`]'s configuration process, and creates a new instance.
     pub fn build(self) -> Result<Fdisk<'a>, FdiskBuilderError> {
